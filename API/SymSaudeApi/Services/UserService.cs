@@ -44,7 +44,7 @@ namespace SymSaudeApi.Services
 
             // authentication successful so generate jwt and refresh tokens
             var jwtToken = generateJwtToken(user);
-            var refreshToken = generateRefreshToken(ipAddress);
+            var refreshToken = generateRefreshToken(ipAddress,user.Id);
 
             // save refresh token
             user.RefreshTokens.Add(refreshToken);
@@ -67,7 +67,7 @@ namespace SymSaudeApi.Services
             if (!refreshToken.IsActive) return null;
 
             // replace old refresh token with a new one and save
-            var newRefreshToken = generateRefreshToken(ipAddress);
+            var newRefreshToken = generateRefreshToken(ipAddress,user.Id);
             refreshToken.Revoked = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
             refreshToken.ReplacedByToken = newRefreshToken.Token;
@@ -131,7 +131,7 @@ namespace SymSaudeApi.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private RefreshToken generateRefreshToken(string ipAddress)
+        private RefreshToken generateRefreshToken(string ipAddress,int UserId)
         {
             using(var rngCryptoServiceProvider = new RNGCryptoServiceProvider())
             {
@@ -142,7 +142,8 @@ namespace SymSaudeApi.Services
                     Token = Convert.ToBase64String(randomBytes),
                     Expires = DateTime.UtcNow.AddDays(7),
                     Created = DateTime.UtcNow,
-                    CreatedByIp = ipAddress
+                    CreatedByIp = ipAddress,
+                    UserId = UserId
                 };
             }
         }

@@ -1,10 +1,15 @@
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace SymSaudeApi.Entities
 {
+
+    [Table("user")]
     public class User
     {
+        [Key]
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

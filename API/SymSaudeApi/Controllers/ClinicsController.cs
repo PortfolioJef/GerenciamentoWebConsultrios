@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ namespace SymSaudeApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ClinicsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -80,10 +82,17 @@ namespace SymSaudeApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Clinic>> PostClinic(Clinic clinic)
         {
-            _context.clinics.Add(clinic);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.clinics.Add(clinic);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetClinic", new { id = clinic.Id }, clinic);
+                return CreatedAtAction("GetClinic", new { id = clinic.Id }, clinic);
+
+            }catch(Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
         // DELETE: api/Clinics/5
@@ -91,6 +100,7 @@ namespace SymSaudeApi.Controllers
         public async Task<ActionResult<Clinic>> DeleteClinic(int id)
         {
             var clinic = await _context.clinics.FindAsync(id);
+
             if (clinic == null)
             {
                 return NotFound();
@@ -106,5 +116,27 @@ namespace SymSaudeApi.Controllers
         {
             return _context.clinics.Any(e => e.Id == id);
         }
+
+
+        //Atribution doctor for clinic
+        [HttpPost, Route("AssignDoctor")]
+        public async Task<ActionResult<DoctorClinic>> AssignDoctor(DoctorClinic doctorClinic)
+        {
+            int CountAssignedInClinics = _context.doctorClinics.Where(d => d.IdDoctor == doctorClinic.IdDoctor).ToList().Count();
+            
+            if (CountAssignedInClinics >= 2)
+                return Unauthorized("Um médico pode estar vinculado a no máximo 2 consultórios");
+
+            ///Doctor already atributed in clinic
+            DoctorClinic dc = _context.doctorClinics.Where(d => d.IdClinic == doctorClinic.IdClinic).FirstOrDefault();
+            if (dc != null)
+                return Unauthorized("Médico Já Atribuido a este Consultório");                       
+
+            _context.doctorClinics.Add(doctorClinic);
+            await _context.SaveChangesAsync();
+
+            return Ok(doctorClinic);
+        }         
+
     }
 }

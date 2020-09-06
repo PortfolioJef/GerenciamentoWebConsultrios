@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ namespace SymSaudeApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DoctorsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -80,10 +82,16 @@ namespace SymSaudeApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Doctor>> PostDoctor(Doctor doctor)
         {
-            _context.doctors.Add(doctor);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.doctors.Add(doctor);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDoctor", new { id = doctor.id }, doctor);
+                return CreatedAtAction("GetDoctor", new { id = doctor.id }, doctor);
+            }catch(Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
         // DELETE: api/Doctors/5

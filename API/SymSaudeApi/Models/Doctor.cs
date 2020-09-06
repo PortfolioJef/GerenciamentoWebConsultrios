@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace SymSaudeApi.Models
 {
+    [Table("Doctor")]
     public class Doctor
     {
         [Key]
@@ -18,7 +20,7 @@ namespace SymSaudeApi.Models
         public string Name { get; set; }
         
         [MaxLength(20)]
-        public string Telefone { get; set; }
+        public string Phone { get; set; }
 
         public decimal ConsultationValue { get; set; }
 
